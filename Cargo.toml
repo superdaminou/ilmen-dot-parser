@@ -1,0 +1,9 @@
+[package]
+name = "ilmen-dot-parser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+thiserror ={ version = "1.0"}
+anyhow = {version = "1.0"}
+log = "0.4"
