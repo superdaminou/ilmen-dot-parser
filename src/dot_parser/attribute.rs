@@ -25,7 +25,6 @@ pub fn new_from_array(array: &String) -> Result<Vec<Attribut>, ParsingError> {
 }
 
 
-
 #[cfg(test)]
 mod tests {
     use std::vec;

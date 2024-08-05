@@ -17,3 +17,12 @@ impl TryFrom<&str> for GraphType {
         }
     }
 }
+
+impl GraphType {
+    pub fn symbol(&self) -> String {
+        match  self {
+            GraphType::Graph => "--".to_string(),
+            GraphType::Digraph => "->".to_string(),
+        }
+    }
+}

@@ -16,7 +16,13 @@ pub struct DotGraph {
 
 impl Default for DotGraph {
     fn default() -> Self {
-        Self { family: GraphType::Graph, nodes: Default::default(), edges: Default::default(), sous_graphes: Default::default(), attributs: Default::default(), name: Default::default() }
+        Self { 
+            family: GraphType::Graph, 
+            nodes: Default::default(), 
+            edges: Default::default(), 
+            sous_graphes: Default::default(), 
+            attributs: Default::default(), 
+            name: Default::default() }
     }
 }
 
@@ -79,8 +85,9 @@ impl DotGraph {
             .map(clean_line)
             .filter(|l| !l.is_empty())
             .try_for_each(|line| {
-                if line.contains("->") {
-                    let edge = Edge::try_from((line, "->"))?;
+                // Edge if it got the arrow
+                if line.contains(&type_graph.symbol()) {
+                    let edge = Edge::try_from((line, type_graph.symbol().as_str()))?;
                     edges.push(edge);
                     return Ok(());
                 } 
@@ -241,7 +248,7 @@ mod tests {
 
     #[test]
     fn graph_try_from() {
-        let input = "graph Test {A; B [label=test, encore=toto]; A -> B;subgraph{C;D;C->D;}B -> A [label=\"to B\"];value=type;subgraph{C;D;C->D;}A->C;}";
+        let input = "digraph Test {A; B [label=test, encore=toto]; A -> B;subgraph{C;D;C->D;}B -> A [label=\"to B\"];value=type;subgraph{C;D;C->D;}A->C;}";
 
         let result = DotGraph::try_from(input).unwrap();
         assert_eq!(result.name, "Test".to_string());
