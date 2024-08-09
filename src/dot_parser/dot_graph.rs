@@ -34,8 +34,9 @@ impl TryFrom<&str> for DotGraph {
         let mut cleaned_content = content.lines()
             .map(clean_line)
             .filter(|l| !l.is_empty() && !l.starts_with("//"))
-            .collect::<String>();
-
+            .collect::<Vec<_>>().join(";")
+            .to_string();
+            
         Self::create_graph(&mut cleaned_content, None)
     }
 }
@@ -249,6 +250,26 @@ mod tests {
     #[test]
     fn graph_try_from() {
         let input = "digraph Test {A; B [label=test, encore=toto]; A -> B;subgraph{C;D;C->D;}B -> A [label=\"to B\"];value=type;subgraph{C;D;C->D;}A->C;}";
+
+        let result = DotGraph::try_from(input).unwrap();
+        assert_eq!(result.name, "Test".to_string());
+        assert_eq!(result.nodes, 
+            vec![
+                Node("A".to_string(), vec![]),
+                Node("B".to_string(), vec![
+                    Attribut{ key:"label".to_string(), value: "test".to_string()},
+                    Attribut{ key:"encore".to_string(),value: "toto".to_string()}])]);
+        assert_eq!(result.edges, 
+            vec![
+                Edge::try_from(("A->B", "->")).unwrap(),
+                Edge::try_from(("B->A[label=\"to B\"", "->")).unwrap(),
+                Edge::try_from(("A->C", "->")).unwrap()]);
+        assert_eq!(result.sous_graphes.len(), 2);
+    }
+
+    #[test]
+    fn graph_try_from_with_new_line_instead_of_semilicons() {
+        let input = "digraph Test {A\r\n B [label=test, encore=toto]; A -> B;subgraph{C;D\r\nC->D;}B -> A [label=\"to B\"]\r\nvalue=type;subgraph{C;D;C->D;}A->C;}";
 
         let result = DotGraph::try_from(input).unwrap();
         assert_eq!(result.name, "Test".to_string());

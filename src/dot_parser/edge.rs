@@ -2,8 +2,8 @@ use super::{attribute::{ new_from_array, Attribut}, parsing_error::ParsingError}
 
 #[derive(Default, PartialEq, Eq, Debug, Clone)]
 pub struct Edge{
-    pub left_node: NodeId,
-    pub right_node: NodeId,
+    pub node_out: NodeId,
+    pub node_in: NodeId,
     pub relation: String,
     pub attributs: Vec<Attribut>
 }
@@ -33,16 +33,16 @@ impl TryFrom<(&str, &str)> for Edge {
             None => vec![]
         };
 
-        Ok(Self{left_node, right_node, relation, attributs})
+        Ok(Self{node_out: left_node, node_in: right_node, relation, attributs})
     }
 }
 
 #[test]
 fn try_from_ok() {
     let combinations :Vec<(&str,Edge)> = vec![
-        ("A->B", Edge{left_node: "A".to_string(), right_node: "B".to_string(), relation: "->".to_string(), attributs: vec![]}),
-        (" A -> B ", Edge{left_node: "A".to_string(), right_node: "B".to_string(), relation: "->".to_string(), attributs: vec![]}),
-        ("A->B[toto=tutu]", Edge{left_node: "A".to_string(), right_node: "B".to_string(), relation: "->".to_string(), attributs: vec![Attribut::try_from("toto=tutu").unwrap()]})
+        ("A->B", Edge{node_out: "A".to_string(), node_in: "B".to_string(), relation: "->".to_string(), attributs: vec![]}),
+        (" A -> B ", Edge{node_out: "A".to_string(), node_in: "B".to_string(), relation: "->".to_string(), attributs: vec![]}),
+        ("A->B[toto=tutu]", Edge{node_out: "A".to_string(), node_in: "B".to_string(), relation: "->".to_string(), attributs: vec![Attribut::try_from("toto=tutu").unwrap()]})
         ];
         
 

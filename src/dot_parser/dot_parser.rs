@@ -11,7 +11,7 @@ pub fn graph_from_file(path: &str) -> Result<DotGraph, ParsingError> {
     let file = read_to_string(path)
         .with_context(|| format!("Reading file {}", path))?;
     
-    let cleaned_file = file.split("\r\n")
+    let cleaned_file = file.lines()
         .map(|line| line.trim_ascii())
         .filter(|line| !line.is_empty() || line.starts_with("//"))
         .collect::<Vec<&str>>()
