@@ -1,6 +1,9 @@
 
+
 use log::debug;
 
+
+use crate::dot_parser::attribute::Attributs;
 
 use super::{attribute::Attribut, edge::Edge, graph_type::GraphType, node::Node, parsing_error::ParsingError};
 
@@ -78,8 +81,8 @@ impl DotGraph {
         let mut attributs = vec![];
         let mut nodes =vec![];
         let mut edges =vec![];
-        let mut default_node_attribute = vec![];
-        let mut default_edge_attribute = vec![];
+        let mut default_node_attribute = Attributs::default();
+        let mut default_edge_attribute = Attributs::default();
         
         body
             .split(";")
@@ -95,10 +98,10 @@ impl DotGraph {
     
                 if line.contains("[") || !line.contains("=") {
                     let node = Node::try_from(&line.to_string())?;
-                    if node.0 == "node" {
-                        default_node_attribute=node.1
-                    } else if node.0 == "edge" {
-                        default_edge_attribute=node.1
+                    if node.identifier == "node" {
+                        default_node_attribute=node.attributes
+                    } else if node.identifier == "edge" {
+                        default_edge_attribute=node.attributes
                     } else {
                         nodes.push(node);   
                     }
@@ -132,7 +135,22 @@ impl DotGraph {
     pub fn name(&self) -> &String {
         &self.name
     }
-    
+
+    pub fn write(&self) -> String {
+        let mut content = String::default();
+
+        content = content + &self.family.to_string() + " " + &self.name + " { \r\n";
+
+        let nodes = self.nodes.iter().map(Node::to_string).fold(String::default(), |acc, node| acc +  "\r\n" + &node);   
+        let edges = self.edges.iter().map(Edge::to_string).fold(String::default(), |acc, edge| acc + "\r\n" + &edge);
+
+        content = content + &nodes + "\r\n\r\n" + &edges;
+
+        let subgraphes_string = self.sous_graphes.iter().map(DotGraph::write).fold(String::default(), |acc, sous_graph| acc + &sous_graph + "\r\n"); 
+        
+
+        content + "\r\n\r\n" + &subgraphes_string
+    }
 }
 
 
@@ -214,7 +232,7 @@ fn next_block_range(block: &str) -> Result<(usize, usize), ParsingError>{
 
 #[cfg(test)]
 mod tests {
-    use std::vec;
+    use std::{collections::HashMap, vec};
 
     use super::*;
 
@@ -252,13 +270,14 @@ mod tests {
         let input = "digraph Test {A; B [label=test, encore=toto]; A -> B;subgraph{C;D;C->D;}B -> A [label=\"to B\"];value=type;subgraph{C;D;C->D;}A->C;}";
 
         let result = DotGraph::try_from(input).unwrap();
+        let mut map_attribut = HashMap::new();
+        map_attribut.insert("label".to_string(), "test".to_string());
+        map_attribut.insert("encore".to_string(), "toto".to_string());
         assert_eq!(result.name, "Test".to_string());
         assert_eq!(result.nodes, 
             vec![
-                Node("A".to_string(), vec![]),
-                Node("B".to_string(), vec![
-                    Attribut{ key:"label".to_string(), value: "test".to_string()},
-                    Attribut{ key:"encore".to_string(),value: "toto".to_string()}])]);
+                Node::new("A",Attributs::default()),
+                Node::new("B", Attributs::from(map_attribut))]);
         assert_eq!(result.edges, 
             vec![
                 Edge::try_from(("A->B", "->")).unwrap(),
@@ -272,13 +291,14 @@ mod tests {
         let input = "digraph Test {A\r\n B [label=test, encore=toto]; A -> B;subgraph{C;D\r\nC->D;}B -> A [label=\"to B\"]\r\nvalue=type;subgraph{C;D;C->D;}A->C;}";
 
         let result = DotGraph::try_from(input).unwrap();
+        let mut map_attribut = HashMap::new();
+        map_attribut.insert("encore".to_string(), "toto".to_string());
+        map_attribut.insert("label".to_string(), "test".to_string());
         assert_eq!(result.name, "Test".to_string());
         assert_eq!(result.nodes, 
             vec![
-                Node("A".to_string(), vec![]),
-                Node("B".to_string(), vec![
-                    Attribut{ key:"label".to_string(), value: "test".to_string()},
-                    Attribut{ key:"encore".to_string(),value: "toto".to_string()}])]);
+                Node::new("A",Attributs::default()),
+                Node::new("B", Attributs::from(map_attribut))]);
         assert_eq!(result.edges, 
             vec![
                 Edge::try_from(("A->B", "->")).unwrap(),

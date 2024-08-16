@@ -26,3 +26,12 @@ impl GraphType {
         }
     }
 }
+
+impl ToString for GraphType {
+    fn to_string(&self) -> String {
+        match self {
+            GraphType::Graph => "graph".to_string(),
+            GraphType::Digraph => "digraph".to_string() ,
+        }
+    }
+}

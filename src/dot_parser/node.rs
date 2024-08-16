@@ -1,8 +1,12 @@
-use super::{attribute::{new_from_array, Attribut}, parsing_error::ParsingError};
+
+use super::{attribute::{Attributs}, parsing_error::ParsingError};
 
 
 #[derive(PartialEq, Eq, Debug, Clone, Default)]
-pub struct Node(pub String,pub Vec<Attribut>);
+pub struct Node{
+    pub identifier: String,
+    pub attributes: Attributs
+}
 
 impl TryFrom<&String> for Node {
     type Error = ParsingError;
@@ -11,29 +15,48 @@ impl TryFrom<&String> for Node {
 
         let split = value.split_once("[").unwrap_or((value, ""));
         let attr = match split.1.is_empty() {
-            true => vec![],
-            false => new_from_array(&split.1.replace("]",""))?
+            true => Attributs::default(),
+            false => Attributs::try_from(&split.1.replace("]",""))?
         };
         
-        Ok(Self(split.0.trim().to_string(), attr))
+        Ok(Self{identifier: split.0.trim().to_string(), attributes: attr})
     }
 }
 
 impl Node {
-    pub fn new(name: &str) -> Self {
-        Self(name.to_string(), vec![])
+    pub fn new(identifier: &str, attributes: Attributs) -> Self {
+        Self{
+            identifier: identifier.to_string(), 
+            attributes
+        }
+    }
+}
+
+impl ToString for Node {
+    fn to_string(&self) -> String {
+        let mut content = self.identifier.clone();
+
+        let attributes_to_string = self.attributes.to_string();
+
+        content = content + &attributes_to_string +  ";\r\n";
+        content
     }
 }
 
 
-
 #[test]
 fn try_from_ok() {
+    
+    let mut first_map = HashMap::new();
+    first_map.insert("label".to_string(), "\"toto\"".to_string());
+    let mut second_map = HashMap::new();
+    second_map.insert("label".to_string(), "\"toto\"".to_string());
+    second_map.insert("encore".to_string(), "2".to_string());
     let combinations :Vec<(&str,Node)> = vec![
-        ("A", Node("A".to_string(), vec![])),
-        ("A_long_name", Node("A_long_name".to_string(), vec![])),
-        ("Bepourquoi[label=\"toto\"]", Node("Bepourquoi".to_string(), vec![Attribut::try_from("label=\"toto\"").unwrap()])),
-        ("Bepourquoi[label=\"toto\",encore=2]", Node("Bepourquoi".to_string(), vec![Attribut::try_from("label=\"toto\"").unwrap(), Attribut::try_from("encore=2").unwrap()]))
+        ("A", Node::new("A", Attributs::default())),
+        ("A_long_name", Node::new("A_long_name", Attributs::default())),
+        ("Bepourquoi[label=\"toto\"]", Node::new("Bepourquoi",Attributs::from(first_map))),
+        ("Bepourquoi[label=\"toto\",encore=2]", Node::new("Bepourquoi", Attributs::from(second_map)))
         ];
         
 
