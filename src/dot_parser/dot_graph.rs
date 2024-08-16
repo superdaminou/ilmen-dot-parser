@@ -1,10 +1,6 @@
-
-
 use log::debug;
-
-
+use petgraph::{csr::DefaultIx, prelude::StableGraph, Directed};
 use crate::dot_parser::attribute::Attributs;
-
 use super::{attribute::Attribut, edge::Edge, graph_type::GraphType, node::Node, parsing_error::ParsingError};
 
 #[derive(PartialEq,Clone)]
@@ -44,7 +40,23 @@ impl TryFrom<&str> for DotGraph {
     }
 }
 
-
+impl<T: Sized,U: Sized> From<&StableGraph<T,U,Directed,DefaultIx>> for DotGraph 
+where 
+T: Into<Node> + Clone, 
+U: Into<Edge> + Clone
+{
+    fn from(value: &StableGraph<T,U,Directed,DefaultIx>) -> Self {
+        let edges = value.edge_weights().map(|n|n.clone().into()).collect::<Vec<Edge>>();
+        let nodes = value.node_weights().map(|n| n.clone().into()).collect::<Vec<Node>>();
+        DotGraph {
+            edges,
+            nodes,
+            name: "Graph".to_string(),
+            family: GraphType::Digraph,
+            ..Default::default()
+        }
+    }
+}
 
 impl DotGraph {
 
@@ -149,7 +161,7 @@ impl DotGraph {
         let subgraphes_string = self.sous_graphes.iter().map(DotGraph::write).fold(String::default(), |acc, sous_graph| acc + &sous_graph + "\r\n"); 
         
 
-        content + "\r\n\r\n" + &subgraphes_string
+        content + "\r\n\r\n" + &subgraphes_string + "\r\n}"
     }
 }
 

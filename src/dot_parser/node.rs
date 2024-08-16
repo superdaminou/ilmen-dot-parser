@@ -1,6 +1,6 @@
+use std::collections::HashMap;
 
 use super::{attribute::{Attributs}, parsing_error::ParsingError};
-
 
 #[derive(PartialEq, Eq, Debug, Clone, Default)]
 pub struct Node{
@@ -23,6 +23,8 @@ impl TryFrom<&String> for Node {
     }
 }
 
+
+
 impl Node {
     pub fn new(identifier: &str, attributes: Attributs) -> Self {
         Self{
@@ -38,7 +40,7 @@ impl ToString for Node {
 
         let attributes_to_string = self.attributes.to_string();
 
-        content = content + &attributes_to_string +  ";\r\n";
+        content = content + &attributes_to_string +  ";";
         content
     }
 }

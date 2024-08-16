@@ -1,4 +1,6 @@
 
+use std::collections::HashMap;
+
 use super::{attribute::Attributs,  parsing_error::ParsingError};
 
 #[derive(Default, PartialEq, Eq, Debug, Clone)]
@@ -40,8 +42,7 @@ impl TryFrom<(&str, &str)> for Edge {
 
 impl ToString for Edge {
     fn to_string(&self) -> String {
-        let content= String::default();
-        self.node_out.clone() + " " + &self.relation + " " + &self.node_in + " " + &self.attributs.to_string() + ";"
+        self.node_out.clone() + " " + "->" + " " + &self.node_in + " " + &self.attributs.to_string() + ";"
     }
 }
 
