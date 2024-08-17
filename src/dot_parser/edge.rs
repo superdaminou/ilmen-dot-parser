@@ -1,13 +1,12 @@
+use crate::TypeRelation;
 
-use std::collections::HashMap;
+use super::{attributs::Attributs,  parsing_error::ParsingError};
 
-use super::{attribute::Attributs,  parsing_error::ParsingError};
-
-#[derive(Default, PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Edge{
     pub node_out: NodeId,
     pub node_in: NodeId,
-    pub relation: String,
+    pub relation: TypeRelation,
     pub attributs: Attributs
 }
 
@@ -23,7 +22,7 @@ impl TryFrom<(&str, &str)> for Edge {
             .ok_or(ParsingError::DefaultError("wtf".to_string()))?;
 
         let left_node= splitted.0.trim().to_string();
-        let relation = value.1.to_string();
+        let relation = TypeRelation::try_from(value.1)?;
         let right_node = splitted.1
             .split_once("[")
             .unwrap_or((splitted.1, "")).0
@@ -46,16 +45,24 @@ impl ToString for Edge {
     }
 }
 
-#[test]
-fn try_from_ok() {
-    let mut  map = HashMap::new();
-    map.insert("toto".to_string(), "tutu".to_string());
-    let combinations :Vec<(&str,Edge)> = vec![
-        ("A->B", Edge{node_out: "A".to_string(), node_in: "B".to_string(), relation: "->".to_string(), attributs: Attributs::default()}),
-        (" A -> B ", Edge{node_out: "A".to_string(), node_in: "B".to_string(), relation: "->".to_string(), attributs: Attributs::default()}),
-        ("A->B[toto=tutu]", Edge{node_out: "A".to_string(), node_in: "B".to_string(), relation: "->".to_string(), attributs: Attributs::from(map)})
-        ];
-        
+mod tests {
+    use std::collections::HashMap;
 
-    combinations.iter().for_each(|combinaisons| assert_eq!(Edge::try_from((combinaisons.0, "->")).unwrap(), combinaisons.1));
-} 
+    
+    
+    use super::*;
+    
+    #[test]
+    fn try_from_ok() {
+        let mut  map = HashMap::new();
+        map.insert("toto".to_string(), "tutu".to_string());
+        let combinations :Vec<(&str,Edge)> = vec![
+            ("A->B", Edge{node_out: "A".to_string(), node_in: "B".to_string(), relation: TypeRelation::Oriente, attributs: Attributs::default()}),
+            (" A -> B ", Edge{node_out: "A".to_string(), node_in: "B".to_string(), relation: TypeRelation::Oriente, attributs: Attributs::default()}),
+            ("A->B[toto=tutu]", Edge{node_out: "A".to_string(), node_in: "B".to_string(), relation: TypeRelation::Oriente, attributs: Attributs::from(map)})
+            ];
+            
+
+        combinations.iter().for_each(|combinaisons| assert_eq!(Edge::try_from((combinaisons.0, "->")).unwrap(), combinaisons.1));
+    } 
+}

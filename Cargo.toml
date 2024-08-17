@@ -8,3 +8,6 @@ thiserror ={ version = "1.0"}
 anyhow = {version = "1.0"}
 log = "0.4"
 petgraph = {version = "0.6", features = ["serde-1"]}
+
+[features]
+petgraph = []

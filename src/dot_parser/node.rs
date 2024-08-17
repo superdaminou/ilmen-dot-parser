@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
-use super::{attribute::{Attributs}, parsing_error::ParsingError};
+use crate::Attributs;
+use super::parsing_error::ParsingError;
 
 #[derive(PartialEq, Eq, Debug, Clone, Default)]
 pub struct Node{
@@ -45,22 +44,27 @@ impl ToString for Node {
     }
 }
 
+mod test {
+    use std::collections::HashMap;
 
-#[test]
-fn try_from_ok() {
-    
-    let mut first_map = HashMap::new();
-    first_map.insert("label".to_string(), "\"toto\"".to_string());
-    let mut second_map = HashMap::new();
-    second_map.insert("label".to_string(), "\"toto\"".to_string());
-    second_map.insert("encore".to_string(), "2".to_string());
-    let combinations :Vec<(&str,Node)> = vec![
-        ("A", Node::new("A", Attributs::default())),
-        ("A_long_name", Node::new("A_long_name", Attributs::default())),
-        ("Bepourquoi[label=\"toto\"]", Node::new("Bepourquoi",Attributs::from(first_map))),
-        ("Bepourquoi[label=\"toto\",encore=2]", Node::new("Bepourquoi", Attributs::from(second_map)))
-        ];
+    use super::*;
+
+    #[test]
+    fn try_from_ok() {
         
-
-    combinations.iter().for_each(|combinaisons| assert_eq!(Node::try_from(&combinaisons.0.to_string()).unwrap(), combinaisons.1));
-} 
+        let mut first_map = HashMap::new();
+        first_map.insert("label".to_string(), "\"toto\"".to_string());
+        let mut second_map = HashMap::new();
+        second_map.insert("label".to_string(), "\"toto\"".to_string());
+        second_map.insert("encore".to_string(), "2".to_string());
+        let combinations :Vec<(&str,Node)> = vec![
+            ("A", Node::new("A", Attributs::default())),
+            ("A_long_name", Node::new("A_long_name", Attributs::default())),
+            ("Bepourquoi[label=\"toto\"]", Node::new("Bepourquoi",Attributs::from(first_map))),
+            ("Bepourquoi[label=\"toto\",encore=2]", Node::new("Bepourquoi", Attributs::from(second_map)))
+            ];
+            
+    
+        combinations.iter().for_each(|combinaisons| assert_eq!(Node::try_from(&combinaisons.0.to_string()).unwrap(), combinaisons.1));
+    } 
+}

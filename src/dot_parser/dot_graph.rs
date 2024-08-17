@@ -1,7 +1,9 @@
-use log::debug;
-use petgraph::{csr::DefaultIx, prelude::StableGraph, Directed};
-use crate::dot_parser::attribute::Attributs;
-use super::{attribute::Attribut, edge::Edge, graph_type::GraphType, node::Node, parsing_error::ParsingError};
+use std::{collections::HashMap, fs::{read_to_string, File}, io::Write};
+
+use anyhow::Context;
+use log::{debug, info};
+use crate::dot_parser::attributs::Attributs;
+use super::{attribut::Attribut, edge::Edge, graph_type::GraphType, node::Node, parsing_error::ParsingError};
 
 #[derive(PartialEq,Clone)]
 pub struct DotGraph {
@@ -9,7 +11,7 @@ pub struct DotGraph {
     nodes: Vec<Node>,
     edges: Vec<Edge>,
     sous_graphes: Vec<DotGraph>,
-    attributs: Vec<Attribut>,
+    attributs: Attributs,
     name: String
 }
 
@@ -23,6 +25,35 @@ impl Default for DotGraph {
             attributs: Default::default(), 
             name: Default::default() }
     }
+}
+
+impl DotGraph {
+    pub fn graph_from_file(path: &str) -> Result<DotGraph, ParsingError> {
+        info!("Opening graph from: {}", path);
+        let file = read_to_string(path)
+            .with_context(|| format!("Reading file {}", path))?;
+        
+        let cleaned_file = file.lines()
+            .map(|line| line.trim_ascii())
+            .filter(|line| !line.is_empty() || line.starts_with("//"))
+            .collect::<Vec<&str>>()
+            .join("\r\n");
+    
+        DotGraph::try_from(cleaned_file.as_str())
+    }
+
+
+    pub fn new(family: GraphType, nodes: Vec<Node>, edges: Vec<Edge>, sous_graphes: Vec<DotGraph>, attributs: Attributs, name: String) -> Self {
+        DotGraph {
+            family,
+            name,
+            nodes,
+            edges,
+            attributs,
+            sous_graphes
+        }
+    }
+    
 }
 
 
@@ -40,23 +71,6 @@ impl TryFrom<&str> for DotGraph {
     }
 }
 
-impl<T: Sized,U: Sized> From<&StableGraph<T,U,Directed,DefaultIx>> for DotGraph 
-where 
-T: Into<Node> + Clone, 
-U: Into<Edge> + Clone
-{
-    fn from(value: &StableGraph<T,U,Directed,DefaultIx>) -> Self {
-        let edges = value.edge_weights().map(|n|n.clone().into()).collect::<Vec<Edge>>();
-        let nodes = value.node_weights().map(|n| n.clone().into()).collect::<Vec<Node>>();
-        DotGraph {
-            edges,
-            nodes,
-            name: "Graph".to_string(),
-            family: GraphType::Digraph,
-            ..Default::default()
-        }
-    }
-}
 
 impl DotGraph {
 
@@ -90,7 +104,7 @@ impl DotGraph {
         let sous_graphes = Self::extract_subgraphes(&mut body, type_graph)?; 
         body.pop(); // Popping last } for the cleanest body 
 
-        let mut attributs = vec![];
+        let mut attributs = HashMap::default();
         let mut nodes =vec![];
         let mut edges =vec![];
         let mut default_node_attribute = Attributs::default();
@@ -121,11 +135,11 @@ impl DotGraph {
                 }
     
                 let att = Attribut::try_from(line)?;
-                attributs.push(att);
+                attributs.insert(att.key, att.value);
                 Ok::<(), ParsingError>(())
             })?;
     
-            Ok(DotGraph {name: name.to_string(), family: type_graph, sous_graphes, nodes, edges, attributs })
+            Ok(DotGraph {name: name.to_string(), family: type_graph, sous_graphes, nodes, edges, attributs: Attributs::from(attributs) })
     }
     
     fn extract_subgraphes(body: &mut String, parent: GraphType) -> Result<Vec<DotGraph>, ParsingError> {
@@ -148,7 +162,14 @@ impl DotGraph {
         &self.name
     }
 
-    pub fn write(&self) -> String {
+    pub fn write(&self, path: &str) -> Result<(), ParsingError> {
+        let content = self.as_dot_content();
+        let mut file = File::create(path).unwrap();
+        file.write_all(content.as_bytes()).unwrap();
+        Ok(())
+    }
+
+    fn as_dot_content(&self) -> String {
         let mut content = String::default();
 
         content = content + &self.family.to_string() + " " + &self.name + " { \r\n";
@@ -158,7 +179,7 @@ impl DotGraph {
 
         content = content + &nodes + "\r\n\r\n" + &edges;
 
-        let subgraphes_string = self.sous_graphes.iter().map(DotGraph::write).fold(String::default(), |acc, sous_graph| acc + &sous_graph + "\r\n"); 
+        let subgraphes_string = self.sous_graphes.iter().map(DotGraph::as_dot_content).fold(String::default(), |acc, sous_graph| acc + &sous_graph + "\r\n"); 
         
 
         content + "\r\n\r\n" + &subgraphes_string + "\r\n}"
