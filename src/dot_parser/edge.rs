@@ -46,11 +46,11 @@ impl ToString for Edge {
 }
 
 mod tests {
-    use std::collections::HashMap;
+    
 
     
     
-    use super::*;
+    
     
     #[test]
     fn try_from_ok() {
