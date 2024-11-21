@@ -1,10 +1,14 @@
 [package]
-name = "ilmen-dot-parser"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
+author = "damien@ilmen.fr"
+license = "MIT"
+description = "A dot file parser"
+homepage = "https://github.com/superdaminou/ilmen-dot-parser"
+name = "ilmen-dot-parser"
 
 [dependencies]
-thiserror ={ version = "1.0"}
+thiserror ={ version = "2.0"}
 anyhow = {version = "1.0"}
 log = "0.4"
 petgraph = {version = "0.6", features = ["serde-1"]}
