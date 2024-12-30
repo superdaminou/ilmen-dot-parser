@@ -4,6 +4,10 @@ use super::parsing_error::ParsingError;
 
 
 #[derive(Default, PartialEq, Eq, Debug, Clone)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct Attributs(Option<HashMap<String,String>>);
 
 impl Attributs {

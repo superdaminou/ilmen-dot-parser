@@ -5,7 +5,11 @@ use log::{debug, info};
 use crate::dot_parser::attributs::Attributs;
 use super::{attribut::Attribut, edge::Edge, graph_type::GraphType, node::Node, parsing_error::ParsingError};
 
-#[derive(PartialEq,Clone)]
+#[derive(PartialEq,Clone, Eq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct DotGraph {
     family: GraphType, 
     nodes: Vec<Node>,
@@ -92,6 +96,9 @@ impl DotGraph {
 
     fn create_graph(content: &mut String, parent: Option<GraphType>)  -> Result<DotGraph, ParsingError>{
         debug!("creating graph from: {}", content);
+        if content.trim().is_empty() {
+            return Ok(DotGraph::default());
+        }
     
         let head_and_body = content.split_once("{").ok_or(ParsingError::DefaultError("Pas de corps ?".to_string()))?;
         let head = head_and_body.0;

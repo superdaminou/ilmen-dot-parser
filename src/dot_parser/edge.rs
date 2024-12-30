@@ -2,7 +2,12 @@ use crate::TypeRelation;
 
 use super::{attributs::Attributs,  parsing_error::ParsingError};
 
+
 #[derive(PartialEq, Eq, Debug, Clone)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct Edge{
     pub node_out: NodeId,
     pub node_in: NodeId,
@@ -47,11 +52,8 @@ impl ToString for Edge {
 
 mod tests {
     
-
     
-    
-    
-    
+        
     #[test]
     fn try_from_ok() {
         let mut  map = HashMap::new();

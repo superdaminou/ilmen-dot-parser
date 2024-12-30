@@ -1,6 +1,10 @@
 use super::parsing_error::ParsingError;
 
 #[derive(Eq, PartialEq, Debug,Clone)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub enum TypeRelation {
     Oriente,
     NonOriente

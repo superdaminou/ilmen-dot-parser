@@ -2,6 +2,10 @@ use super::parsing_error::ParsingError;
 
 
 #[derive(PartialEq, Eq, Clone, Copy)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub enum GraphType {
     Graph,
     Digraph

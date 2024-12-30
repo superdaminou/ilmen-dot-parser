@@ -2,6 +2,10 @@ use crate::Attributs;
 use super::parsing_error::ParsingError;
 
 #[derive(PartialEq, Eq, Debug, Clone, Default)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct Node{
     pub identifier: String,
     pub attributes: Attributs
@@ -45,6 +49,12 @@ impl ToString for Node {
 }
 
 mod test {
+    
+
+    
+
+    
+
     
 
     
